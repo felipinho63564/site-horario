@@ -25,7 +25,6 @@
             scroll-behavior: smooth;
         }
 
-        /* Top Bar com Seleção */
         .top-bar {
             position: fixed;
             top: 0;
@@ -51,7 +50,6 @@
             cursor: pointer;
         }
 
-        /* Seção de Destaque (Hoje) */
         .hero {
             height: 100vh;
             display: flex;
@@ -97,7 +95,6 @@
         .subject-item:last-child { border: none; }
         .emoji { margin-right: 15px; font-size: 1.4rem; }
 
-        /* Grade Semanal */
         .content-section {
             padding: 80px 20px;
             max-width: 1100px;
@@ -125,17 +122,45 @@
             font-size: 1.2rem;
         }
 
+        .prof-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .prof-card {
+            background: var(--prof-bg);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .prof-subject {
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .prof-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
         .scroll-hint {
             position: absolute;
             bottom: 20px;
             color: var(--text-dim);
             font-size: 0.8rem;
             animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
         }
     </style>
 </head>
@@ -155,7 +180,7 @@
             <div class="today-name" id="dayLabel">Hoje</div>
             <ul class="subject-list" id="listToday"></ul>
         </div>
-        <div class="scroll-hint">▼ Role para ver a semana inteira</div>
+        <div class="scroll-hint">▼ Role para ver a semana e professores</div>
     </section>
 
     <section class="content-section">
@@ -163,21 +188,44 @@
         <div class="grid" id="fullGrid"></div>
     </section>
 
+    <section class="content-section" style="background: rgba(0,0,0,0.2); border-radius: 30px;">
+        <h2 style="text-align: center; margin-bottom: 40px;">👨‍🏫 Professores da Turma</h2>
+        <div class="prof-grid" id="profGrid"></div>
+    </section>
+
     <script>
         const dados = {
             "903": {
-                1: { aulas: ["Inglês", "Português", "Ciências", "Matemática", "Matemática"], emojis: ["🗣️","📚","🧪","🔢","🔢"] },
-                2: { aulas: ["Português", "Português", "Matemática", "Geografia", "Ensino Religioso"], emojis: ["📚","📚","🔢","🌍","🙏"] },
-                3: { aulas: ["Ed. Física", "Arte", "Inglês", "Matemática", "Matemática"], emojis: ["⚽","🎨","🗣️","🔢","🔢"] },
-                4: { aulas: ["Ciências", "História", "Português", "Português", "História"], emojis: ["🧪","📜","📚","📚","📜"] },
-                5: { aulas: ["História", "Geografia", "Ed. Física", "Ciências", "Geografia"], emojis: ["📜","🌍","⚽","🧪","🌍"] }
+                horario: {
+                    1: { aulas: ["Inglês", "Português", "Ciências", "Matemática", "Matemática"], emojis: ["🗣️","📚","🧪","🔢","🔢"] },
+                    2: { aulas: ["Português", "Português", "Matemática", "Geografia", "Ensino Religioso"], emojis: ["📚","📚","🔢","🌍","🙏"] },
+                    3: { aulas: ["Ed. Física", "Arte", "Inglês", "Matemática", "Matemática"], emojis: ["⚽","🎨","🗣️","🔢","🔢"] },
+                    4: { aulas: ["Ciências", "História", "Português", "Português", "História"], emojis: ["🧪","📜","📚","📚","📜"] },
+                    5: { aulas: ["História", "Geografia", "Ed. Física", "Ciências", "Geografia"], emojis: ["📜","🌍","⚽","🧪","🌍"] }
+                },
+                professores: [
+                    { m: "Matemática", n: "Angela" }, { m: "Português", n: "Maria Luiza" },
+                    { m: "Ciências", n: "Camilo" }, { m: "História", n: "Rafael" },
+                    { m: "Geografia", n: "Douglas" }, { m: "Inglês", n: "Denize" },
+                    { m: "Ed. Física", n: "Rafael Pena" }, { m: "Arte", n: "Cléia" },
+                    { m: "Ensino Religioso", n: "Valéria" }
+                ]
             },
             "904": {
-                1: { aulas: ["Português", "Inglês", "Matemática", "Português", "Ciências"], emojis: ["📚","🗣️","🔢","📚","🧪"] },
-                2: { aulas: ["Ciências", "Ensino Religioso", "Português", "Português", "Geografia"], emojis: ["🧪","🙏","📚","📚","🌍"] },
-                3: { aulas: ["Matemática", "Matemática", "Ed. Física", "Arte", "Inglês"], emojis: ["🔢","🔢","⚽","🎨","🗣️"] },
-                4: { aulas: ["História", "Ciências", "Matemática", "História", "Matemática"], emojis: ["📜","🧪","🔢","📜","🔢"] },
-                5: { aulas: ["Ed. Física", "História", "Geografia", "Geografia", "Português"], emojis: ["⚽","📜","🌍","🌍","📚"] }
+                horario: {
+                    1: { aulas: ["Português", "Inglês", "Matemática", "Português", "Ciências"], emojis: ["📚","🗣️","🔢","📚","🧪"] },
+                    2: { aulas: ["Ciências", "Ensino Religioso", "Português", "Português", "Geografia"], emojis: ["🧪","🙏","📚","📚","🌍"] },
+                    3: { aulas: ["Matemática", "Matemática", "Ed. Física", "Arte", "Inglês"], emojis: ["🔢","🔢","⚽","🎨","🗣️"] },
+                    4: { aulas: ["História", "Ciências", "Matemática", "História", "Matemática"], emojis: ["📜","🧪","🔢","📜","🔢"] },
+                    5: { aulas: ["Ed. Física", "História", "Geografia", "Geografia", "Português"], emojis: ["⚽","📜","🌍","🌍","📚"] }
+                },
+                professores: [
+                    { m: "Português", n: "Maria Luiza" }, { m: "Inglês", n: "Denize" },
+                    { m: "Matemática", n: "Angela" }, { m: "Ciências", n: "Camilo" },
+                    { m: "Ensino Religioso", n: "Valéria" }, { m: "Geografia", n: "Douglas" },
+                    { m: "Ed. Física", n: "Rafael Pena" }, { m: "Arte", n: "Cléia" },
+                    { m: "História", n: "Rafael" }
+                ]
             }
         };
 
@@ -189,7 +237,7 @@
         }
 
         function renderizar(id) {
-            const horario = dados[id];
+            const info = dados[id];
             const diaSemana = new Date().getDay();
             
             document.getElementById('viewTitle').innerText = `CRONOGRAMA - TURMA 9º ${id === '903' ? '03' : '04'}`;
@@ -201,8 +249,8 @@
             if(diaSemana === 0 || diaSemana === 6) {
                 listToday.innerHTML = `<li class="subject-item"><span class="emoji">😴</span> Final de semana!</li>`;
             } else {
-                horario[diaSemana].aulas.forEach((a, i) => {
-                    listToday.innerHTML += `<li class="subject-item"><span class="emoji">${horario[diaSemana].emojis[i]}</span> ${a}</li>`;
+                info.horario[diaSemana].aulas.forEach((a, i) => {
+                    listToday.innerHTML += `<li class="subject-item"><span class="emoji">${info.horario[diaSemana].emojis[i]}</span> ${a}</li>`;
                 });
             }
 
@@ -211,11 +259,18 @@
             fullGrid.innerHTML = "";
             for(let d=1; d<=5; d++) {
                 let html = `<div class="day-box"><h3>${diasTexto[d]}</h3><ul class="subject-list" style="font-size:0.9rem">`;
-                horario[d].aulas.forEach((a, i) => {
-                    html += `<li class="subject-item"><span class="emoji">${horario[d].emojis[i]}</span> ${a}</li>`;
+                info.horario[d].aulas.forEach((a, i) => {
+                    html += `<li class="subject-item"><span class="emoji">${info.horario[d].emojis[i]}</span> ${a}</li>`;
                 });
                 fullGrid.innerHTML += html + "</ul></div>";
             }
+
+            // Render Professores
+            const profGrid = document.getElementById('profGrid');
+            profGrid.innerHTML = "";
+            info.professores.forEach(p => {
+                profGrid.innerHTML += `<div class="prof-card"><span class="prof-subject">${p.m}</span><span class="prof-name">${p.n}</span></div>`;
+            });
         }
 
         window.onload = () => {
