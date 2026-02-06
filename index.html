@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horário Escolar Inteligente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --highlight: #22c55e;
+            --prof-bg: #334155;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        /* Top Bar com Seleção */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        select {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--accent);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Seção de Destaque (Hoje) */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+        }
+
+        .today-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .today-name {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--highlight);
+            margin-bottom: 15px;
+        }
+
+        .subject-list {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        .subject-item {
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+
+        .subject-item:last-child { border: none; }
+        .emoji { margin-right: 15px; font-size: 1.4rem; }
+
+        /* Grade Semanal */
+        .content-section {
+            padding: 80px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .day-box {
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .day-box h3 {
+            color: var(--accent);
+            margin: 0 0 15px 0;
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 20px;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <span style="font-weight: 600; font-size: 0.9rem;">SUA TURMA:</span>
+        <select id="turmaSelect" onchange="trocarTurma(this.value)">
+            <option value="903">9º ANO 03</option>
+            <option value="904">9º ANO 04</option>
+        </select>
+    </div>
+
+    <section class="hero">
+        <h1 id="viewTitle" style="font-size: 1rem; color: var(--accent); letter-spacing: 2px; margin-bottom: 10px;">CARREGANDO...</h1>
+        <div class="today-card">
+            <div class="today-name" id="dayLabel">Hoje</div>
+            <ul class="subject-list" id="listToday"></ul>
+        </div>
+        <div class="scroll-hint">▼ Role para ver a semana inteira</div>
+    </section>
+
+    <section class="content-section">
+        <h2 style="text-align: center; margin-bottom: 40px;">📅 Horário Completo</h2>
+        <div class="grid" id="fullGrid"></div>
+    </section>
+
+    <script>
+        const dados = {
+            "903": {
+                1: { aulas: ["Inglês", "Português", "Ciências", "Matemática", "Matemática"], emojis: ["🗣️","📚","🧪","🔢","🔢"] },
+                2: { aulas: ["Português", "Português", "Matemática", "Geografia", "Ensino Religioso"], emojis: ["📚","📚","🔢","🌍","🙏"] },
+                3: { aulas: ["Ed. Física", "Arte", "Inglês", "Matemática", "Matemática"], emojis: ["⚽","🎨","🗣️","🔢","🔢"] },
+                4: { aulas: ["Ciências", "História", "Português", "Português", "História"], emojis: ["🧪","📜","📚","📚","📜"] },
+                5: { aulas: ["História", "Geografia", "Ed. Física", "Ciências", "Geografia"], emojis: ["📜","🌍","⚽","🧪","🌍"] }
+            },
+            "904": {
+                1: { aulas: ["Português", "Inglês", "Matemática", "Português", "Ciências"], emojis: ["📚","🗣️","🔢","📚","🧪"] },
+                2: { aulas: ["Ciências", "Ensino Religioso", "Português", "Português", "Geografia"], emojis: ["🧪","🙏","📚","📚","🌍"] },
+                3: { aulas: ["Matemática", "Matemática", "Ed. Física", "Arte", "Inglês"], emojis: ["🔢","🔢","⚽","🎨","🗣️"] },
+                4: { aulas: ["História", "Ciências", "Matemática", "História", "Matemática"], emojis: ["📜","🧪","🔢","📜","🔢"] },
+                5: { aulas: ["Ed. Física", "História", "Geografia", "Geografia", "Português"], emojis: ["⚽","📜","🌍","🌍","📚"] }
+            }
+        };
+
+        const diasTexto = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+        function trocarTurma(id) {
+            localStorage.setItem('minhaTurma', id);
+            renderizar(id);
+        }
+
+        function renderizar(id) {
+            const horario = dados[id];
+            const diaSemana = new Date().getDay();
+            
+            document.getElementById('viewTitle').innerText = `CRONOGRAMA - TURMA 9º ${id === '903' ? '03' : '04'}`;
+            document.getElementById('dayLabel').innerText = diasTexto[diaSemana];
+            
+            // Render Hoje
+            const listToday = document.getElementById('listToday');
+            listToday.innerHTML = "";
+            if(diaSemana === 0 || diaSemana === 6) {
+                listToday.innerHTML = `<li class="subject-item"><span class="emoji">😴</span> Final de semana!</li>`;
+            } else {
+                horario[diaSemana].aulas.forEach((a, i) => {
+                    listToday.innerHTML += `<li class="subject-item"><span class="emoji">${horario[diaSemana].emojis[i]}</span> ${a}</li>`;
+                });
+            }
+
+            // Render Semana
+            const fullGrid = document.getElementById('fullGrid');
+            fullGrid.innerHTML = "";
+            for(let d=1; d<=5; d++) {
+                let html = `<div class="day-box"><h3>${diasTexto[d]}</h3><ul class="subject-list" style="font-size:0.9rem">`;
+                horario[d].aulas.forEach((a, i) => {
+                    html += `<li class="subject-item"><span class="emoji">${horario[d].emojis[i]}</span> ${a}</li>`;
+                });
+                fullGrid.innerHTML += html + "</ul></div>";
+            }
+        }
+
+        window.onload = () => {
+            const salva = localStorage.getItem('minhaTurma') || "903";
+            document.getElementById('turmaSelect').value = salva;
+            renderizar(salva);
+        };
+    </script>
+</body>
+</html>
